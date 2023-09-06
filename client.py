@@ -1,18 +1,3 @@
-import numpy as np
-import torch
-from sklearn.metrics import roc_auc_score
-from torch.optim import AdamW
-from torch.utils.data import DataLoader
-
-from federated_learning.core.client import Client
-from federated_learning.core.utils.typing import GetWeightsInstructions, GetWeightsResult, TrainInstructions, \
-    TrainResult, ClientInitConfig, \
-    EvaluateInstructions, EvaluateResult, Code, Status, SetWeightsInstructions, SetWeightsResult
-from federated_learning.core.utils.weights_transformation import ndarrays_to_weights, weights_to_ndarrays
-from federated_learning.examples.anti_fraud_fl.client.dataset import TransactionsDataset, get_train_test_datasets
-from federated_learning.examples.anti_fraud_fl.client.net import load_model
-
-
 class Client:
     def __init__(self, id, model, global_weights_save_folder_path, local_weights_save_folder_path, train_set, test_set):
         super().__init__(id, model, global_weights_save_folder_path, local_weights_save_folder_path)

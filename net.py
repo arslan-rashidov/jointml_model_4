@@ -1,11 +1,3 @@
-from collections import OrderedDict
-
-import torch
-import torch.nn as nn
-
-from federated_learning.core.utils import NDArrays
-
-
 class Net(nn.Module):
     def __init__(self, n_features=30, hidden_dim=32):
         super().__init__()

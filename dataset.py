@@ -1,9 +1,3 @@
-import torch
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-
-
 def load_dataset(dataset_path):
     df = pd.read_csv(dataset_path)
     labels = df['Class'].to_numpy().reshape(-1, 1)
