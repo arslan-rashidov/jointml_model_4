@@ -1,3 +1,9 @@
+from collections import OrderedDict
+
+import torch
+import torch.nn as nn
+
+
 class Net(nn.Module):
     def __init__(self, n_features=30, hidden_dim=32):
         super().__init__()
@@ -32,13 +38,13 @@ class Net(nn.Module):
 
         return x
 
-    def set_weights(self, weights: NDArrays):  # TODO: Specify type of weights and return type
+    def set_weights(self, weights):  # TODO: Specify type of weights and return type
         state_dict = OrderedDict(
             {k: torch.tensor(v) for k, v in zip(self.state_dict().keys(), weights)}
         )
         self.load_state_dict(state_dict, strict=True)
 
-    def get_weights(self) -> NDArrays:  # TODO: Specify return type
+    def get_weights(self):  # TODO: Specify return type
         return [val.cpu().numpy() for _, val in self.state_dict().items()]
 
 

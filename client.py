@@ -1,3 +1,13 @@
+import numpy as np
+import torch
+from sklearn.metrics import roc_auc_score
+from torch.optim import AdamW
+from torch.utils.data import DataLoader
+
+from dataset import get_train_test_datasets
+from net import load_model
+
+
 class Client:
     def __init__(self, id, model, global_weights_save_folder_path, local_weights_save_folder_path, train_set, test_set):
         super().__init__(id, model, global_weights_save_folder_path, local_weights_save_folder_path)
@@ -5,16 +15,16 @@ class Client:
         self.train_set = train_set
         self.test_set = test_set
 
-    def get_weights(self, get_weights_ins: GetWeightsInstructions) -> GetWeightsResult:
-        weights = ndarrays_to_weights(self.model.get_weights())
-        return GetWeightsResult(status=Status(code=Code.OK, message='OK'), weights=weights)
+    def get_weights(self, get_weights_ins):
+        weights = self.model.get_weights()
+        return weights
 
-    def set_weights(self, set_weights_ins: SetWeightsInstructions):
+    def set_weights(self, set_weights_ins):
         self.model.set_weights(set_weights_ins.weights)
 
-    def train(self, train_ins: TrainInstructions) -> TrainResult:
+    def train(self, train_ins):
         if train_ins.weights:
-            weights = weights_to_ndarrays(train_ins.weights)
+            weights = train_ins.weights
             self.model.set_weights(weights)
         train_epoch_loss = 0.0
         config = train_ins.config
@@ -42,13 +52,12 @@ class Client:
 
         train_epoch_loss /= len(train_dataloader)
 
-        weights = ndarrays_to_weights(self.model.get_weights())
-        return TrainResult(status=Status(code=Code.OK, message='OK'), weights=weights,
-                           metrics={'train_loss': train_epoch_loss}, num_examples=len(train_dataloader.dataset))
+        weights = self.model.get_weights()
+        return train_epoch_loss
 
-    def test(self, eval_ins: EvaluateInstructions) -> EvaluateResult:
+    def test(self, eval_ins):
         if eval_ins.weights:
-            weights = weights_to_ndarrays(eval_ins.weights)
+            weights = eval_ins.weights
             self.model.set_weights(weights)
 
         test_loss = 0.0
@@ -77,8 +86,7 @@ class Client:
         test_loss /= len(test_dataloader)
         test_roc_auc_score = roc_auc_score(labels, outputs)
 
-        return EvaluateResult(status=Status(code=Code.OK, message='OK'), num_examples=len(test_dataloader.dataset),
-                              metrics={'test_loss': test_loss, 'test_roc_auc_score': test_roc_auc_score})
+        return test_loss
 
     def get_prediction(self):
         test_loss = 0.0
@@ -103,12 +111,12 @@ class Client:
 
 
 def create_client(id, dataset_path, global_weights_save_folder_path: str, local_weights_save_folder_path: str,
-                  init_weights=None) -> AntiFraudClient:
+                  init_weights=None) -> Client:
     train_set, test_set = get_train_test_datasets(dataset_path=dataset_path)
 
     model = load_model(n_features=30, hidden_dim=32)
 
-    client = AntiFraudClient(id=id, model=model, global_weights_save_folder_path=global_weights_save_folder_path,
+    client = Client(id=id, model=model, global_weights_save_folder_path=global_weights_save_folder_path,
                              local_weights_save_folder_path=local_weights_save_folder_path, train_set=train_set,
                              test_set=test_set)
 
